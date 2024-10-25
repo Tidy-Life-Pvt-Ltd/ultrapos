@@ -84,7 +84,6 @@ class _LoginState extends State<Login> {
         });
       });
     });
-
     focusNodeCompanyGroupCode.addListener(() {
       setState(() {
         hintCompanyGroupCode = focusNodeCompanyGroupCode.hasFocus
