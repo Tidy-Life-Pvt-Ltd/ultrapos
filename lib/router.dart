@@ -81,13 +81,9 @@ class PageBuilder{
   static Widget buildPurchase() {
     return  const PurchaseScreen();
   }
-
-
   static Widget buildPOS() {
     return  const POSScreen();
   }
-
-
   static Widget buildPDC() {
     return  const PdcScreen();
   }
