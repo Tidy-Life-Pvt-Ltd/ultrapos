@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project_ultra/model/checklist.dart';
-
 import 'package:project_ultra/model/customer.dart';
 import 'package:project_ultra/model/reportresponse.dart';
 import 'package:project_ultra/services/api.dart';
@@ -11,10 +10,8 @@ import 'package:project_ultra/utils/divider.dart';
 import 'package:project_ultra/utils/shared_prefs.dart';
 import 'package:project_ultra/utils/text_home.dart';
 import 'package:project_ultra/widgets/SizedBox.dart';
-
 import 'package:project_ultra/widgets/progressdialoge.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-
 import 'login.dart';
 
 class HomePage extends StatefulWidget {
@@ -668,7 +665,7 @@ class _HomePageState extends State<HomePage> {
                 txt: "Today's PDC report",
                 colr: CustomColors.white,
                 fontWeight: FontWeight.bold,
-                font: "stsbold",
+                font: " ",
               ),
               if (isPdcLoad)
                 const SizedBox(
@@ -682,7 +679,7 @@ class _HomePageState extends State<HomePage> {
                 txt: "View All",
                 colr: CustomColors.white,
                 fontWeight: FontWeight.normal,
-                font: "stsregular",
+                font: " ",
               ),
             ],
           ),
@@ -850,9 +847,9 @@ class _HomePageState extends State<HomePage> {
     dateControllerTo.text = formattedDate;
 
     Future.delayed(Duration.zero, () {
-      print('---------- INIT SALES-----------');
+      print('------- INIT SALES-----------');
       this.getSalesReport();
-      print("------------>  ttlamnt <-----------$ttlamnt");
+      print("----------->  total <-----------$ttlamnt");
     });
 
     Future.delayed(Duration.zero, () {
