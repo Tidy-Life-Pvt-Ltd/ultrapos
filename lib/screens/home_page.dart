@@ -849,7 +849,7 @@ class _HomePageState extends State<HomePage> {
     Future.delayed(Duration.zero, () {
       print('------- INIT SALES-----------');
       this.getSalesReport();
-      print("------------>  total <-----------$ttlamnt");
+      print("----------->  total <-----------$ttlamnt");
     });
 
     Future.delayed(Duration.zero, () {
