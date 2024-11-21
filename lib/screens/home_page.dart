@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project_ultra/model/checklist.dart';
+
 import 'package:project_ultra/model/customer.dart';
 import 'package:project_ultra/model/reportresponse.dart';
 import 'package:project_ultra/services/api.dart';
@@ -10,8 +11,12 @@ import 'package:project_ultra/utils/divider.dart';
 import 'package:project_ultra/utils/shared_prefs.dart';
 import 'package:project_ultra/utils/text_home.dart';
 import 'package:project_ultra/widgets/SizedBox.dart';
+
 import 'package:project_ultra/widgets/progressdialoge.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import '../model/branchresponse.dart';
+import '../utils/constants.dart';
+import '../utils/toast.dart';
 import 'login.dart';
 
 class HomePage extends StatefulWidget {
@@ -51,6 +56,66 @@ class _HomePageState extends State<HomePage> {
   String? selectedDate;
   String? selectedSale;
   bool isChartTapped = false;
+  String? GroupCode;
+  List<BranchResponse> branchList = [];
+
+  getBranches() async {
+    APIService apiService = new APIService();
+    GroupCode  = Preference.getString("GroupCode")!;
+
+    final result = await apiService.getBranches(GroupCode!);
+    if (result.status == true) {
+      if (result.branchList != null && result.branchList!.length > 0) {
+        companyCode = result.branchList![0].companyCode!;
+        // await Preference.setString(
+        //     "BranchesName", result.branchList![0].companyName);
+
+      } else {
+        Navigator.of(context, rootNavigator: true).pop();
+        ToastMessage.showSnackBarWithoutTitle(context, Constants.noBranches);
+
+      }
+    } else {
+      Navigator.of(context, rootNavigator: true).pop();
+      ToastMessage.showSnackBarWithoutTitle(
+          context, Constants.errorUsernameandPassword);
+    }
+  }
+
+  Future<void>
+  _fetchBranches() async {
+    APIService apiService = new APIService();
+    GroupCode  = Preference.getString("GroupCode")!;
+    final result = await apiService.getBranches(GroupCode!);
+    if (result.status == true && result.branchList != null && result.branchList!.isNotEmpty) {
+      setState(() {
+        branchList = result.branchList!;
+        companyCode = branchList[0].companyCode; // Set the first branch code as initial value
+      });
+    } else {
+      Navigator.of(context, rootNavigator: true).pop();
+      ToastMessage.showSnackBarWithoutTitle(context, Constants.noBranches);
+    }
+  }
+
+  // APIService apiService = new APIService();
+  // final result = await apiService.getBranches(compGroupCodeController.text);
+  // if (result.status == true) {
+  // if (result.branchList != null && result.branchList!.length > 0) {
+  // companyCode = result.branchList![0].companyCode!;
+  // await Preference.setString(
+  // "BranchesName", result.branchList![0].companyName);
+  // login();
+  // } else {
+  // Navigator.of(context, rootNavigator: true).pop();
+  // ToastMessage.showSnackBarWithoutTitle(context, Constants.noBranches);
+  //
+  // }
+  // } else {
+  // Navigator.of(context, rootNavigator: true).pop();
+  // ToastMessage.showSnackBarWithoutTitle(
+  // context, Constants.errorUsernameandPassword);
+  // }
 
 
   @override
@@ -119,7 +184,39 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       // Dropdown text
                       Expanded(
-                        child: DropdownButtonHideUnderline(
+                        child:  DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            value: companyCode,
+                            icon: const Icon(
+                              Icons.arrow_drop_down_outlined,
+                              color: Colors.black,
+                            ),
+                            dropdownColor: CustomColors.lightWhite1,
+                            items: branchList.map<DropdownMenuItem<String>>((branch) {
+                              return DropdownMenuItem<String>(
+                                value: branch.companyCode,
+                                child: Text(
+                                  branch.companyName,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue)  {
+                              setState(()  {
+                                companyCode = newValue!; // Update companyCode when a new item is selected
+                             print(companyCode);
+                                 Preference.setString("comapnyCode", companyCode);
+                                getReport();
+                                getSalesReport();
+                                getPurchase(companyCode);
+                                getPdcReport(false);
+                              });
+                            },
+                          ),
+                        )
+                       /* DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             isExpanded: true, // Prevents overflow
                             value: companyCode,
@@ -146,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                               });
                             },
                           ),
-                        ),
+                        ),*/
                       ),
                     ],
                   ),
@@ -300,7 +397,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     getReport();
                     getSalesReport();
-                    getPurchase();
+                    getPurchase(companyCode);
                     getPdcReport(false);
                   },
                   elevation: 2.0,
@@ -353,7 +450,7 @@ class _HomePageState extends State<HomePage> {
             visibleMinimum: 0,
                 desiredIntervals: 31,
                 placeLabelsNearAxisLine: true,
-                visibleMaximum: 5
+                visibleMaximum: 6
             ),
             zoomPanBehavior: ZoomPanBehavior(
               enablePanning: true,
@@ -665,7 +762,7 @@ class _HomePageState extends State<HomePage> {
                 txt: "Today's PDC report",
                 colr: CustomColors.white,
                 fontWeight: FontWeight.bold,
-                font: " ",
+                font: "stsbold",
               ),
               if (isPdcLoad)
                 const SizedBox(
@@ -679,7 +776,7 @@ class _HomePageState extends State<HomePage> {
                 txt: "View All",
                 colr: CustomColors.white,
                 fontWeight: FontWeight.normal,
-                font: " ",
+                font: "stsregular",
               ),
             ],
           ),
@@ -837,9 +934,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // getBranches();
+    _fetchBranches();
     String formattedDate = DateFormat('dd MMM yyyy').format(DateTime.now());
 
-    companyCode = Preference.getString("BranchesName")!;
+     companyCode = Preference.getString("BranchesName")!;
 
     print('------- COMPANY ----------- ${companyCode}');
 
@@ -847,14 +946,14 @@ class _HomePageState extends State<HomePage> {
     dateControllerTo.text = formattedDate;
 
     Future.delayed(Duration.zero, () {
-      print('------- INIT SALES-----------');
+      print('---------- INIT SALES-----------');
       this.getSalesReport();
-      print("----------->  total <-----------$ttlamnt");
+      print("------------>  ttlamnt <-----------$ttlamnt");
     });
 
     Future.delayed(Duration.zero, () {
       print('---------- INIT PURCHASE-----------');
-      this.getPurchase();
+      this.getPurchase(companyCode);
       print("------------>  ttlamnt <-----------$ttlamnt");
     });
 
@@ -995,7 +1094,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void getPurchase() async {
+  void getPurchase(String companyCode) async {
     salesData.clear();
     salesFiltered.clear();
     ProgressDialog.showLoadingDialog(context, _dialogeKey);

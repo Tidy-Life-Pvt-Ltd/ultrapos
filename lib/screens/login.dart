@@ -84,7 +84,6 @@ class _LoginState extends State<Login> {
         });
       });
     });
-
     focusNodeCompanyGroupCode.addListener(() {
       setState(() {
         hintCompanyGroupCode = focusNodeCompanyGroupCode.hasFocus
@@ -101,24 +100,18 @@ class _LoginState extends State<Login> {
       if (result.status == true) {
         if (result.branchList != null && result.branchList!.length > 0) {
           companyCode = result.branchList![0].companyCode!;
-          //SnackBarSection.showSnackBarWithoutTitle(context, companyCode);
-          // ToastMessage.showSnackBarWithoutTitle(context,result.message! );
           await Preference.setString(
               "BranchesName", result.branchList![0].companyName);
           login();
         } else {
           Navigator.of(context, rootNavigator: true).pop();
           ToastMessage.showSnackBarWithoutTitle(context, Constants.noBranches);
-          // SnackBarSection.showSnackBarWithoutTitle(
-          //     context, Constants.noBranches);
+
         }
       } else {
         Navigator.of(context, rootNavigator: true).pop();
-
         ToastMessage.showSnackBarWithoutTitle(
             context, Constants.errorUsernameandPassword);
-        // SnackBarSection.showSnackBarWithoutTitle(
-        //     context, Constants.errorUsernameandPassword);
       }
     } catch (error) {
       print(error);
