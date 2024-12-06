@@ -20,4 +20,14 @@ class ProgressDialog {
                   ]));
         });
   }
+
+  static void showLoadingDialogs(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
 }

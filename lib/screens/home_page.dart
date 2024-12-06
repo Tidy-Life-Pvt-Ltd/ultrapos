@@ -58,29 +58,8 @@ class _HomePageState extends State<HomePage> {
   bool isChartTapped = false;
   String? GroupCode;
   List<BranchResponse> branchList = [];
+  String BranchName = '';
 
-  getBranches() async {
-    APIService apiService = new APIService();
-    GroupCode  = Preference.getString("GroupCode")!;
-
-    final result = await apiService.getBranches(GroupCode!);
-    if (result.status == true) {
-      if (result.branchList != null && result.branchList!.length > 0) {
-        companyCode = result.branchList![0].companyCode!;
-        // await Preference.setString(
-        //     "BranchesName", result.branchList![0].companyName);
-
-      } else {
-        Navigator.of(context, rootNavigator: true).pop();
-        ToastMessage.showSnackBarWithoutTitle(context, Constants.noBranches);
-
-      }
-    } else {
-      Navigator.of(context, rootNavigator: true).pop();
-      ToastMessage.showSnackBarWithoutTitle(
-          context, Constants.errorUsernameandPassword);
-    }
-  }
 
   Future<void> _fetchBranches() async {
     APIService apiService = new APIService();
@@ -90,6 +69,32 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         branchList = result.branchList!;
         companyCode = branchList[0].companyCode; // Set the first branch code as initial value
+        print('--------FETCH BRANCH API ------------');
+        print('-------- ${companyCode}********');
+        Preference.setString("comapnyCode", companyCode);
+      });
+      this.getSalesReport();
+      this.getPurchase(companyCode);
+      // Future.delayed(Duration.zero, () {
+      //   print('---------- INIT SALES-----------');
+      //
+      // });
+
+      // Future.delayed(Duration.zero, () {
+      //   print('---------- INIT PURCHASE-----------');
+      //
+      //   print("------------>  ttlamnt <-----------$ttlamnt");
+      // });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        String formattedDateTo = DateFormat('dd MMM yyyy').format(DateTime.now());
+        DateTime nowFiveDaysAgo = DateTime.now().add(Duration(days: -6));
+        String formattedDateFrom = DateFormat('dd MMM yyyy').format(nowFiveDaysAgo);
+        dateControllerTo.text = formattedDateTo;
+        dateControllerFrom.text = formattedDateFrom;
+
+        this.getReport();
+        this.getPdcReport();
       });
     } else {
       Navigator.of(context, rootNavigator: true).pop();
@@ -205,9 +210,9 @@ class _HomePageState extends State<HomePage> {
                             onChanged: (String? newValue)  {
                               setState(()  {
                                 companyCode = newValue!; // Update companyCode when a new item is selected
-                             print(companyCode);
-                                 Preference.setString("comapnyCode", companyCode);
-                                getReport();
+                             Preference.setString('comapnyCode', companyCode);
+
+                                 getReport();
                                 getSalesReport();
                                 getPurchase(companyCode);
                                 getPdcReport(false);
@@ -215,34 +220,6 @@ class _HomePageState extends State<HomePage> {
                             },
                           ),
                         )
-                       /* DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true, // Prevents overflow
-                            value: companyCode,
-                            icon: const Icon(
-                              Icons.arrow_drop_down_outlined,
-                              color: Colors.black,
-                            ),
-                            dropdownColor: CustomColors.lightWhite1,
-                            items: <String>[companyCode]
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                  overflow: TextOverflow
-                                      .ellipsis, // Prevents text overflow
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                companyCode = newValue!;
-                              });
-                            },
-                          ),
-                        ),*/
                       ),
                     ],
                   ),
@@ -446,10 +423,10 @@ class _HomePageState extends State<HomePage> {
 
             CategoryAxis(majorGridLines: const MajorGridLines(width: 0),
             autoScrollingMode: AutoScrollingMode.start,
-            visibleMinimum: 0,
+            visibleMinimum: 1,
                 desiredIntervals: 31,
                 placeLabelsNearAxisLine: true,
-                visibleMaximum: 5
+                visibleMaximum: 6
             ),
             zoomPanBehavior: ZoomPanBehavior(
               enablePanning: true,
@@ -853,6 +830,7 @@ class _HomePageState extends State<HomePage> {
     ProgressDialog.showLoadingDialog(context, _dialogeKey);
     try {
       String companyCode = Preference.getString("comapnyCode")!;
+      print("-------------------company code: $companyCode");
       DateFormat inputFormat = DateFormat('dd MMM yyyy');
       DateTime parsedDateFrom = inputFormat.parse(dateControllerFrom.text);
       DateTime parsedDateTo = inputFormat.parse(dateControllerTo.text);
@@ -935,45 +913,28 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     // getBranches();
     _fetchBranches();
+
     String formattedDate = DateFormat('dd MMM yyyy').format(DateTime.now());
 
-     companyCode = Preference.getString("BranchesName")!;
+    // companyCode = Preference.getString("comapnyCode")!;
 
     print('------- COMPANY ----------- ${companyCode}');
+    print('------- COMPANY ----------- ${BranchName}');
 
     dateControllerFrom.text = formattedDate;
     dateControllerTo.text = formattedDate;
 
-    Future.delayed(Duration.zero, () {
-      print('---------- INIT SALES-----------');
-      this.getSalesReport();
-      print("------------>  ttlamnt <-----------$ttlamnt");
-    });
 
-    Future.delayed(Duration.zero, () {
-      print('---------- INIT PURCHASE-----------');
-      this.getPurchase(companyCode);
-      print("------------>  ttlamnt <-----------$ttlamnt");
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      String formattedDateTo = DateFormat('dd MMM yyyy').format(DateTime.now());
-      DateTime nowFiveDaysAgo = DateTime.now().add(Duration(days: -6));
-      String formattedDateFrom =
-          DateFormat('dd MMM yyyy').format(nowFiveDaysAgo);
-      dateControllerTo.text = formattedDateTo;
-      dateControllerFrom.text = formattedDateFrom;
-      this.getReport();
-      this.getPdcReport();
-    });
   }
 
   void getPdcReport([bool islad = false]) async {
     reportPdcData.clear();
     pdcFiltered.clear();
-    ProgressDialog.showLoadingDialog(context, _dialogeKey);
+    ProgressDialog.showLoadingDialogs(context);
+    // ProgressDialog.showLoadingDialog(context, _dialogeKey);
     try {
       String companyCode = Preference.getString("comapnyCode")!;
+      print("-------------------company code:$companyCode");
       DateFormat inputFormat = DateFormat('dd MMM yyyy');
       DateTime parsedDateFrom = inputFormat.parse(dateControllerFrom.text);
       DateTime parsedDateTo = inputFormat.parse(dateControllerTo.text);
@@ -1016,10 +977,13 @@ class _HomePageState extends State<HomePage> {
   void getSalesReport() async {
     salesData.clear();
     salesFiltered.clear();
-    ProgressDialog.showLoadingDialog(context, _dialogeKey);
+    ProgressDialog.showLoadingDialogs(context);
+
+    // ProgressDialog.showLoadingDialog(context, _dialogeKey);
     print('*****************Get Sales Report************');
     try {
       String companyCode = Preference.getString("comapnyCode")!;
+      print("-------------------company code:$companyCode");
 
       await Future.wait([
         getSalesForRange(
@@ -1067,6 +1031,7 @@ class _HomePageState extends State<HomePage> {
       final result = await apiService.getSalesReprort(reportRequest);
 
       if (result != null && result.status == true) {
+        print('======== ENTER HERE NEW DATA =========');
         if (result.salesList!.length > 0) {
           double totalAmount = result.salesList!
               .map((reportPdcData) => reportPdcData.netAmount)
@@ -1086,7 +1051,23 @@ class _HomePageState extends State<HomePage> {
           print("$label: 0.0 (No sales data)");
         }
       } else {
-        print("$label: 0.0 (Failed to fetch data)");
+        if (result.salesList!.length == 0) {
+          double totalAmount = result.salesList!
+              .map((reportPdcData) => reportPdcData.netAmount)
+              .fold(0, (prev, amount) => prev + amount);
+
+          print("$label: $totalAmount");
+          setState(() {
+            if (label == 'Today Sales') {
+              _todaySalesAmount = totalAmount.toStringAsFixed(2);
+            } else if (label == 'Last 7 Days Sales') {
+              _last7DaysSalesAmount = totalAmount.toStringAsFixed(2);
+            } else if (label == 'Last 30 Days Sales') {
+              _last30DaysSalesAmount = totalAmount.toStringAsFixed(2);
+            }
+          });
+        }
+
       }
     } catch (error) {
       print("$label: Error occurred - $error");
@@ -1096,10 +1077,13 @@ class _HomePageState extends State<HomePage> {
   void getPurchase(String companyCode) async {
     salesData.clear();
     salesFiltered.clear();
-    ProgressDialog.showLoadingDialog(context, _dialogeKey);
+    ProgressDialog.showLoadingDialogs(context);
+
+    // ProgressDialog.showLoadingDialog(context, _dialogeKey);
     print('*****************Get Purchase Summary************');
     try {
       String companyCode = Preference.getString("comapnyCode")!;
+      print("-------------------company code:$companyCode");
 
       await Future.wait([
         getPurchaseSummary(
