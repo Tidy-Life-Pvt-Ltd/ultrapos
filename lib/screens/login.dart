@@ -100,8 +100,8 @@ class _LoginState extends State<Login> {
       if (result.status == true) {
         if (result.branchList != null && result.branchList!.length > 0) {
           companyCode = result.branchList![0].companyCode!;
-          await Preference.setString(
-              "BranchesName", result.branchList![0].companyName);
+           await Preference.setString("BranchesName", result.branchList![0].companyName);
+            await Preference.setString("BranchesCode", result.branchList![0].companyCode);
           login();
         } else {
           Navigator.of(context, rootNavigator: true).pop();
